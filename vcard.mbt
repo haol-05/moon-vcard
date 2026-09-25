@@ -1,18 +1,32 @@
 ///|
+/// A single attribute parameter, for example `TYPE=cell` or a bare `PREF`.
+pub struct Param {
+  name : String
+  values : Array[String]
+} derive(Eq, Debug)
+
+///|
+/// A property value together with the parameters written on its own line.
+pub struct Field {
+  value : String
+  params : Array[Param]
+} derive(Eq, Debug)
+
+///|
 pub struct Contact {
   version : String
   full_name : String
   family_name : String
   given_name : String
-  phones : Array[String]
-  emails : Array[String]
-}
+  phones : Array[Field]
+  emails : Array[Field]
+} derive(Eq, Debug)
 
 ///|
 pub struct ParseResult {
   contacts : Array[Contact]
   diagnostics : Array[String]
-}
+} derive(Eq, Debug)
 
 ///|
 fn unfold(input : String) -> Array[String] {
@@ -80,9 +94,72 @@ fn escape_text(input : String) -> String {
 }
 
 ///|
-fn property_name(input : String) -> String {
-  let parts = input.split(";").to_array()
-  parts[0].to_owned()
+/// Splits `input` at its first `separator` and keeps any later separator in the tail.
+fn split_once(input : String, separator : String) -> (String, String?) {
+  let parts = input.split(separator).to_array()
+  if parts.length() < 2 {
+    return (input, None)
+  }
+  let tail = StringBuilder()
+  for index in 1..<parts.length() {
+    if index > 1 {
+      tail.write_string(separator)
+    }
+    tail.write_string(parts[index].to_owned())
+  }
+  (parts[0].to_owned(), Some(tail.to_string()))
+}
+
+///|
+/// Reads the property name and its parameters from the part before the first `:`.
+fn parse_property_head(head : String) -> (String, Array[Param]) {
+  let segments = head.split(";").to_array()
+  if segments.length() == 0 {
+    return ("", [])
+  }
+  let name = segments[0].trim().to_owned()
+  let params : Array[Param] = []
+  for index in 1..<segments.length() {
+    let raw = segments[index].trim().to_owned()
+    if raw == "" {
+      continue
+    }
+    let (param_name, maybe_value) = split_once(raw, "=")
+    let values : Array[String] = []
+    match maybe_value {
+      Some(raw_value) => {
+        let text = raw_value.trim().to_owned()
+        let quoted = text.has_prefix("\"") && text.has_suffix("\"")
+        if quoted && text.length() >= 2 {
+          values.push(text.replace_all(old="\"", new=""))
+        } else {
+          for piece in text.split(",") {
+            values.push(piece.trim().to_owned())
+          }
+        }
+      }
+      None => ()
+    }
+    params.push({ name: param_name.trim().to_owned(), values, })
+  }
+  (name, params)
+}
+
+///|
+/// Writes one property line, parameters included, followed by CRLF.
+fn write_field(output : StringBuilder, name : String, field : Field) -> Unit {
+  output.write_string(name)
+  for param in field.params {
+    output.write_string(";")
+    output.write_string(param.name)
+    if param.values.length() > 0 {
+      output.write_string("=")
+      output.write_string(param.values.join(","))
+    }
+  }
+  output.write_string(":")
+  output.write_string(escape_text(field.value))
+  output.write_string("\r\n")
 }
 
 ///|
@@ -128,8 +205,8 @@ pub fn parse(input : String) -> ParseResult {
   let mut full_name = ""
   let mut family_name = ""
   let mut given_name = ""
-  let mut phones : Array[String] = []
-  let mut emails : Array[String] = []
+  let mut phones : Array[Field] = []
+  let mut emails : Array[Field] = []
   let mut line_number = 0
   for line in unfold(input) {
     line_number += 1
@@ -180,20 +257,15 @@ pub fn parse(input : String) -> ParseResult {
       diagnostics.push("outside-card:" + line_number.to_string())
       continue
     }
-    let pieces = line.split(":").to_array()
-    if pieces.length() < 2 {
-      diagnostics.push("invalid-line:" + line_number.to_string())
-      continue
-    }
-    let key = property_name(pieces[0].to_owned())
-    let raw_builder = StringBuilder()
-    for index in 1..<pieces.length() {
-      if index > 1 {
-        raw_builder.write_string(":")
+    let (head, maybe_raw) = split_once(line, ":")
+    let raw = match maybe_raw {
+      Some(text) => text
+      None => {
+        diagnostics.push("invalid-line:" + line_number.to_string())
+        continue
       }
-      raw_builder.write_string(pieces[index].to_owned())
     }
-    let raw = raw_builder.to_string()
+    let (key, params) = parse_property_head(head)
     if key == "N" {
       match name_parts(raw) {
         Some(names) => {
@@ -214,8 +286,8 @@ pub fn parse(input : String) -> ParseResult {
     match key {
       "VERSION" => version = value
       "FN" => full_name = value
-      "TEL" => if value != "" { phones.push(value) }
-      "EMAIL" => if value != "" { emails.push(value) }
+      "TEL" => if value != "" { phones.push({ value, params, }) }
+      "EMAIL" => if value != "" { emails.push({ value, params, }) }
       _ => ()
     }
   }
@@ -242,14 +314,10 @@ pub fn format(contact : Contact) -> String? {
   output.write_string(escape_text(contact.given_name))
   output.write_string(";;;\r\n")
   for phone in contact.phones {
-    output.write_string("TEL:")
-    output.write_string(escape_text(phone))
-    output.write_string("\r\n")
+    write_field(output, "TEL", phone)
   }
   for email in contact.emails {
-    output.write_string("EMAIL:")
-    output.write_string(escape_text(email))
-    output.write_string("\r\n")
+    write_field(output, "EMAIL", email)
   }
   output.write_string("END:VCARD\r\n")
   Some(output.to_string())

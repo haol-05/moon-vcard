@@ -1,6 +1,10 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "haol-05/moon-vcard"
 
+import {
+  "moonbitlang/core/debug",
+}
+
 // Values
 pub fn format(Contact) -> String?
 
@@ -14,14 +18,24 @@ pub struct Contact {
   full_name : String
   family_name : String
   given_name : String
-  phones : Array[String]
-  emails : Array[String]
-}
+  phones : Array[Field]
+  emails : Array[Field]
+} derive(Eq, @debug.Debug)
+
+pub struct Field {
+  value : String
+  params : Array[Param]
+} derive(Eq, @debug.Debug)
+
+pub struct Param {
+  name : String
+  values : Array[String]
+} derive(Eq, @debug.Debug)
 
 pub struct ParseResult {
   contacts : Array[Contact]
   diagnostics : Array[String]
-}
+} derive(Eq, @debug.Debug)
 
 // Type aliases
 
