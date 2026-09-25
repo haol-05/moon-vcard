@@ -88,3 +88,51 @@ test "bare parameter and quoted parameter value" {
   assert_eq(params[1].name, "TYPE")
   assert_eq(params[1].values, ["work,voice"])
 }
+
+///|
+test "quoted-printable value decodes utf-8 text" {
+  let input = "BEGIN:VCARD\nVERSION:3.0\nFN;ENCODING=QUOTED-PRINTABLE:=E5=BC=A0=E4=B8=89\nN:Zhang;San;;;\nEND:VCARD"
+  let result = @moon-vcard.parse(input)
+  assert_eq(result.diagnostics.length(), 0)
+  assert_eq(result.contacts[0].full_name, "张三")
+}
+
+///|
+test "quoted-printable soft line break is joined" {
+  let input = "BEGIN:VCARD\nVERSION:3.0\nFN;ENCODING=QUOTED-PRINTABLE:=E5=BC=A0=\n=E4=B8=89\nN:Zhang;San;;;\nEND:VCARD"
+  let result = @moon-vcard.parse(input)
+  assert_eq(result.diagnostics.length(), 0)
+  assert_eq(result.contacts[0].full_name, "张三")
+  assert_eq(result.contacts[0].family_name, "Zhang")
+}
+
+///|
+test "malformed quoted-printable is reported and kept" {
+  let input = "BEGIN:VCARD\nVERSION:3.0\nFN;ENCODING=QUOTED-PRINTABLE:Bad=ZZ\nN:Bad;Case;;;\nEND:VCARD"
+  let result = @moon-vcard.parse(input)
+  assert_true(result.diagnostics.contains("invalid-quoted-printable:3"))
+  assert_eq(result.contacts[0].full_name, "Bad=ZZ")
+}
+
+///|
+test "unsupported charset is reported instead of mis-decoded" {
+  let input = "BEGIN:VCARD\nVERSION:3.0\nFN;CHARSET=GB2312;ENCODING=QUOTED-PRINTABLE:=D5=C5=C8=FD\nN:Zhang;San;;;\nEND:VCARD"
+  let result = @moon-vcard.parse(input)
+  assert_true(result.diagnostics.contains("unsupported-charset:3"))
+  assert_true(result.diagnostics.contains("invalid-quoted-printable:3"))
+}
+
+///|
+test "quoted-printable parameter is dropped once decoded" {
+  let input = "BEGIN:VCARD\nVERSION:3.0\nFN:Alice\nN:Smith;Alice;;;\nTEL;ENCODING=QUOTED-PRINTABLE:+1=2D234\nEND:VCARD"
+  let result = @moon-vcard.parse(input)
+  assert_eq(result.contacts[0].phones[0].value, "+1-234")
+  assert_eq(result.contacts[0].phones[0].params.length(), 0)
+  match @moon-vcard.format(result.contacts[0]) {
+    Some(text) => {
+      assert_true(text.contains("TEL:+1-234\r\n"))
+      assert_false(text.contains("ENCODING"))
+    }
+    None => fail("expected serialized contact")
+  }
+}

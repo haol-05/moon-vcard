@@ -1,6 +1,6 @@
 # Moon vCard
 
-MoonBit library for offline reading and writing of common vCard 3.0 and 4.0 contact text. It handles multiple cards in one input, folded lines, text escapes, `FN`, `N`, `TEL`, `EMAIL`, and the attribute parameters written on those lines (`TYPE`, `PREF`, and others). Parsing returns accepted contacts alongside diagnostic codes. No network or platform contact permissions are required.
+MoonBit library for offline reading and writing of common vCard 3.0 and 4.0 contact text. It handles multiple cards in one input, folded lines, text escapes, quoted-printable values, `FN`, `N`, `TEL`, `EMAIL`, and the attribute parameters written on those lines (`TYPE`, `PREF`, and others). Parsing returns accepted contacts alongside diagnostic codes. No network or platform contact permissions are required.
 
 ## Install and run
 
@@ -36,7 +36,7 @@ for contact in result.contacts {
 }
 ```
 
-`parse` accepts LF or CRLF input and returns diagnostics such as `missing-fn:4`, `invalid-version:4`, or `unclosed-card`. `format` returns a CRLF-terminated vCard when the version and full name are valid, and writes the parameters back on the same line. Review `diagnostics` before importing contacts into an address book.
+`parse` accepts LF or CRLF input and returns diagnostics such as `missing-fn:4`, `invalid-version:4`, `invalid-quoted-printable:3`, `unsupported-charset:3`, or `unclosed-card`. `format` returns a CRLF-terminated vCard when the version and full name are valid, and writes the parameters back on the same line. Review `diagnostics` before importing contacts into an address book.
 
 Each `TEL` and `EMAIL` line becomes a `Field`:
 
@@ -51,7 +51,7 @@ Each `TEL` and `EMAIL` line becomes a `Field`:
 
 ## Scope
 
-This is a deliberately small text-field core, not full RFC 6350 coverage. It keeps the parameters of `TEL` and `EMAIL` lines, including quoted values such as `TYPE="work,voice"`, and writes them back; it does not decode quoted-printable or base64, does not interpret charset parameters, does not support property groups such as `item1.TEL`, and does not keep the parameters of `FN` or `N`. Unknown properties are ignored. Serialization writes the supported fields only. Test data contains fictional contacts only.
+This is a deliberately small text-field core, not full RFC 6350 coverage. It keeps the parameters of `TEL` and `EMAIL` lines, including quoted values such as `TYPE="work,voice"`, and writes them back. Values marked `ENCODING=QUOTED-PRINTABLE` are decoded, soft line breaks included, and the consumed `ENCODING` parameter is dropped so that the written line never claims an encoding the value no longer has; `format` never re-encodes quoted-printable. Only UTF-8 and ASCII are decoded: a `CHARSET` naming anything else reports `unsupported-charset` and its bytes are decoded as UTF-8 with replacement characters rather than silently guessed. Base64 payloads, property groups such as `item1.TEL`, and the parameters of `FN` or `N` are not supported, and unknown properties are ignored. Serialization writes the supported fields only. Test data contains fictional contacts only.
 
 ## Related work
 
@@ -61,7 +61,7 @@ A GitHub repository search for `moonbit vcard`, `vcard moonbit` and `moonbit con
 
 ## Environment note
 
-Locally verified on 2026-09-25 with moon 0.1.20260807 on Windows: `moon check --target all`, `moon build` and `moon test` on `wasm`, `wasm-gc` and `js` (7 tests each), and the demo through `moon run`. With that release `moon check --deny-warn --target all` also reports zero warnings. The `native` target does not build on that host because the toolchain's own runtime source `<moon-home>/lib/runtime/env.c` calls `rand_s` without a declaration; a two-line test package fails identically, so this is a toolchain issue on that machine, not a defect in this library.
+Locally verified on 2026-09-25 with moon 0.1.20260807 on Windows: `moon check --target all`, `moon build` and `moon test` on `wasm`, `wasm-gc` and `js` (12 tests each), and the demo through `moon run`. With that release `moon check --deny-warn --target all` also reports zero warnings. The `native` target does not build on that host because the toolchain's own runtime source `<moon-home>/lib/runtime/env.c` calls `rand_s` without a declaration; a two-line test package fails identically, so this is a toolchain issue on that machine, not a defect in this library.
 
 GitHub Actions runs the same steps on `ubuntu-latest` with the latest released toolchain (moon 0.1.20260920 at the time of writing), including the `native` target, and passes. Two differences between toolchain releases are worth knowing:
 
