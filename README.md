@@ -80,7 +80,7 @@ A GitHub repository search for `moonbit vcard`, `vcard moonbit` and `moonbit con
 
 ## Environment note
 
-Locally verified on 2026-09-25 with moon 0.1.20260807 on Windows: `moon check --target all`, `moon build` and `moon test` on `wasm`, `wasm-gc` and `js` (14 tests each), and the demo through `moon run`. With that release `moon check --deny-warn --target all` also reports zero warnings. The `native` target does not build on that host because the toolchain's own runtime source `<moon-home>/lib/runtime/env.c` calls `rand_s` without a declaration; a two-line test package fails identically, so this is a toolchain issue on that machine, not a defect in this library.
+Locally verified on 2026-09-25 with moon 0.1.20260807 on Windows: `moon check --target all`, `moon build` and `moon test` on `wasm`, `wasm-gc` and `js` (16 tests each), and the demo through `moon run`. With that release `moon check --deny-warn --target all` also reports zero warnings. The `native` target does not build on that host because the toolchain's own runtime source `<moon-home>/lib/runtime/env.c` calls `rand_s` without a declaration; a two-line test package fails identically, so this is a toolchain issue on that machine, not a defect in this library.
 
 GitHub Actions runs the same steps on `ubuntu-latest` with the latest released toolchain (moon 0.1.20260920 at the time of writing), including the `native` target, and passes. Two differences between toolchain releases are worth knowing:
 
