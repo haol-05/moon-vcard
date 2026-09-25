@@ -1,0 +1,5 @@
+import {
+  "haol-05/moon-vcard" @vcard,
+}
+
+pkgtype(kind: "executable")

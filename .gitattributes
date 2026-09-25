@@ -1,0 +1,3 @@
+# Force consistent LF line endings so that the CI step "moon fmt && git diff --exit-code"
+# behaves identically on Windows and Linux checkouts.
+* text=auto eol=lf
