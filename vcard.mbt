@@ -163,6 +163,261 @@ fn write_field(output : StringBuilder, name : String, field : Field) -> Unit {
 }
 
 ///|
+/// ASCII-only upper casing, enough for parameter names and encoding values.
+fn ascii_upper(input : String) -> String {
+  let result = StringBuilder()
+  for c in input.iter() {
+    result.write_char(c.to_ascii_uppercase())
+  }
+  result.to_string()
+}
+
+///|
+/// Values of the first parameter named `name`, which is expected in upper case.
+fn param_values(params : Array[Param], name : String) -> Array[String]? {
+  for param in params {
+    if ascii_upper(param.name) == name {
+      return Some(param.values)
+    }
+  }
+  None
+}
+
+///|
+fn has_quoted_printable_encoding(params : Array[Param]) -> Bool {
+  match param_values(params, "ENCODING") {
+    Some(values) => {
+      for value in values {
+        if ascii_upper(value) == "QUOTED-PRINTABLE" {
+          return true
+        }
+      }
+      false
+    }
+    None => false
+  }
+}
+
+///|
+/// True when the `CHARSET` parameter is absent or names UTF-8 / ASCII.
+fn has_supported_charset(params : Array[Param]) -> Bool {
+  match param_values(params, "CHARSET") {
+    Some(values) => {
+      if values.length() == 0 {
+        return true
+      }
+      let name = ascii_upper(values[0])
+      name == "UTF-8" || name == "US-ASCII" || name == "ASCII"
+    }
+    None => true
+  }
+}
+
+///|
+/// Drops the parameters whose meaning has already been applied to the stored value.
+fn drop_consumed_params(
+  params : Array[Param],
+  keep_charset : Bool,
+) -> Array[Param] {
+  let kept : Array[Param] = []
+  for param in params {
+    let name = ascii_upper(param.name)
+    if name == "ENCODING" {
+      continue
+    }
+    if name == "CHARSET" && !keep_charset {
+      continue
+    }
+    kept.push(param)
+  }
+  kept
+}
+
+///|
+fn drop_last(input : String) -> String {
+  let chars = input.iter().to_array()
+  if chars.length() == 0 {
+    return ""
+  }
+  let result = StringBuilder()
+  let last = chars.length() - 1
+  for index in 0..<last {
+    result.write_char(chars[index])
+  }
+  result.to_string()
+}
+
+///|
+fn hex_value(c : Char) -> Int? {
+  let code = Char::to_int(c.to_ascii_uppercase())
+  let zero = Char::to_int('0')
+  let nine = Char::to_int('9')
+  let upper_a = Char::to_int('A')
+  let upper_f = Char::to_int('F')
+  if code >= zero && code <= nine {
+    return Some(code - zero)
+  }
+  if code >= upper_a && code <= upper_f {
+    return Some(code - upper_a + 10)
+  }
+  None
+}
+
+///|
+fn is_continuation(byte : Int) -> Bool {
+  byte >= 0x80 && byte <= 0xBF
+}
+
+///|
+/// Reads a byte, or `-1` past the end, so callers can check without a length test.
+fn byte_at(bytes : Array[Int], index : Int) -> Int {
+  if index < bytes.length() {
+    bytes[index]
+  } else {
+    -1
+  }
+}
+
+///|
+fn utf8_bytes(code : Int) -> Array[Int] {
+  if code < 0x80 {
+    return [code]
+  }
+  if code < 0x800 {
+    return [0xC0 | (code >> 6), 0x80 | (code & 0x3F)]
+  }
+  [0xE0 | (code >> 12), 0x80 | ((code >> 6) & 0x3F), 0x80 | (code & 0x3F)]
+}
+
+///|
+/// Builds a `Char` from a code unit whose range the caller has already checked.
+/// Surrogate halves are valid `Char` values, so the safe conversion is not enough.
+fn char_of(code : Int) -> Char {
+  code.unsafe_to_char()
+}
+
+///|
+/// Decodes UTF-8 bytes and reports whether every sequence was well formed.
+fn decode_utf8(bytes : Array[Int]) -> (String, Bool) {
+  let result = StringBuilder()
+  let replacement = char_of(0xFFFD)
+  let mut index = 0
+  let mut ok = true
+  while index < bytes.length() {
+    let first = bytes[index]
+    if first < 0x80 {
+      result.write_char(char_of(first))
+      index += 1
+    } else if first < 0xC2 {
+      ok = false
+      result.write_char(replacement)
+      index += 1
+    } else if first <= 0xDF {
+      let second = byte_at(bytes, index + 1)
+      if is_continuation(second) {
+        let code = ((first - 0xC0) << 6) + (second - 0x80)
+        result.write_char(char_of(code))
+        index += 2
+      } else {
+        ok = false
+        result.write_char(replacement)
+        index += 1
+      }
+    } else if first <= 0xEF {
+      let second = byte_at(bytes, index + 1)
+      let third = byte_at(bytes, index + 2)
+      let second_ok = is_continuation(second)
+      let third_ok = is_continuation(third)
+      if second_ok && third_ok {
+        let lead = (first - 0xE0) << 12
+        let middle = (second - 0x80) << 6
+        let code = lead + middle + (third - 0x80)
+        result.write_char(char_of(code))
+        index += 3
+      } else {
+        ok = false
+        result.write_char(replacement)
+        index += 1
+      }
+    } else if first <= 0xF4 {
+      let second = byte_at(bytes, index + 1)
+      let third = byte_at(bytes, index + 2)
+      let fourth = byte_at(bytes, index + 3)
+      let second_ok = is_continuation(second)
+      let third_ok = is_continuation(third)
+      let fourth_ok = is_continuation(fourth)
+      if second_ok && third_ok && fourth_ok {
+        let lead = (first - 0xF0) << 18
+        let high = (second - 0x80) << 12
+        let middle = (third - 0x80) << 6
+        let code = lead + high + middle + (fourth - 0x80)
+        let value = code - 0x10000
+        let unit_high = 0xD800 + (value >> 10)
+        let unit_low = 0xDC00 + (value & 0x3FF)
+        result.write_char(char_of(unit_high))
+        result.write_char(char_of(unit_low))
+        index += 4
+      } else {
+        ok = false
+        result.write_char(replacement)
+        index += 1
+      }
+    } else {
+      ok = false
+      result.write_char(replacement)
+      index += 1
+    }
+  }
+  (result.to_string(), ok)
+}
+
+///|
+/// Decodes one quoted-printable value. `false` means a `=XX` sequence was malformed
+/// or the decoded bytes were not valid UTF-8.
+fn decode_quoted_printable(input : String) -> (String, Bool) {
+  let chars = input.iter().to_array()
+  let bytes : Array[Int] = []
+  let mut index = 0
+  let mut ok = true
+  while index < chars.length() {
+    let current = chars[index]
+    let mut step = 1
+    if current == '=' {
+      let has_two = index + 2 < chars.length()
+      if has_two {
+        let upper = hex_value(chars[index + 1])
+        let lower = hex_value(chars[index + 2])
+        match (upper, lower) {
+          (Some(high), Some(low)) => {
+            bytes.push(high * 16 + low)
+            step = 3
+          }
+          _ => {
+            ok = false
+            bytes.push(0x3D)
+          }
+        }
+      } else {
+        ok = false
+        bytes.push(0x3D)
+      }
+    } else {
+      let code = Char::to_int(current)
+      if code < 0x80 {
+        bytes.push(code)
+      } else {
+        for byte in utf8_bytes(code) {
+          bytes.push(byte)
+        }
+      }
+    }
+    index += step
+  }
+  let (text, valid) = decode_utf8(bytes)
+  (text, ok && valid)
+}
+
+///|
 fn name_parts(input : String) -> Array[String]? {
   let parts : Array[String] = []
   let mut current = StringBuilder()
@@ -200,6 +455,7 @@ fn name_parts(input : String) -> Array[String]? {
 pub fn parse(input : String) -> ParseResult {
   let contacts : Array[Contact] = []
   let diagnostics : Array[String] = []
+  let lines = unfold(input)
   let mut active = false
   let mut version = ""
   let mut full_name = ""
@@ -208,7 +464,10 @@ pub fn parse(input : String) -> ParseResult {
   let mut phones : Array[Field] = []
   let mut emails : Array[Field] = []
   let mut line_number = 0
-  for line in unfold(input) {
+  let mut index = 0
+  while index < lines.length() {
+    let line = lines[index]
+    index += 1
     line_number += 1
     if line == "BEGIN:VCARD" {
       if active {
@@ -257,6 +516,7 @@ pub fn parse(input : String) -> ParseResult {
       diagnostics.push("outside-card:" + line_number.to_string())
       continue
     }
+    let property_line = line_number
     let (head, maybe_raw) = split_once(line, ":")
     let raw = match maybe_raw {
       Some(text) => text
@@ -266,28 +526,52 @@ pub fn parse(input : String) -> ParseResult {
       }
     }
     let (key, params) = parse_property_head(head)
+    let mut field_params = params
+    let mut text = raw
+    if has_quoted_printable_encoding(params) {
+      let supported = has_supported_charset(params)
+      if !supported {
+        diagnostics.push("unsupported-charset:" + property_line.to_string())
+      }
+      while text.has_suffix("=") && index < lines.length() {
+        text = drop_last(text) + lines[index]
+        index += 1
+        line_number += 1
+      }
+      let (decoded, ok) = decode_quoted_printable(text)
+      if !ok {
+        diagnostics.push(
+          "invalid-quoted-printable:" + property_line.to_string(),
+        )
+      }
+      text = decoded
+      field_params = drop_consumed_params(params, supported)
+    }
     if key == "N" {
-      match name_parts(raw) {
+      match name_parts(text) {
         Some(names) => {
           family_name = names[0]
           given_name = names[1]
         }
-        None => diagnostics.push("invalid-n:" + line_number.to_string())
+        None => diagnostics.push("invalid-n:" + property_line.to_string())
       }
       continue
     }
-    let value = match unescape_text(raw) {
-      Some(text) => text
+    let value = match unescape_text(text) {
+      Some(inner) => inner
       None => {
-        diagnostics.push("invalid-escape:" + line_number.to_string())
+        diagnostics.push("invalid-escape:" + property_line.to_string())
         continue
       }
     }
     match key {
       "VERSION" => version = value
       "FN" => full_name = value
-      "TEL" => if value != "" { phones.push({ value, params, }) }
-      "EMAIL" => if value != "" { emails.push({ value, params, }) }
+      "TEL" => if value != "" { phones.push({ value, params: field_params, }) }
+      "EMAIL" =>
+        if value != "" {
+          emails.push({ value, params: field_params, })
+        }
       _ => ()
     }
   }
