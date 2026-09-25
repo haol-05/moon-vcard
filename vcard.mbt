@@ -222,7 +222,7 @@ pub fn parse(input : String) -> ParseResult {
   if active {
     diagnostics.push("unclosed-card")
   }
-  { contacts, diagnostics }
+  { contacts, diagnostics, }
 }
 
 ///|
