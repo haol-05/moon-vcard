@@ -234,6 +234,76 @@ fn drop_consumed_params(
 }
 
 ///|
+/// Reads a non-negative decimal integer, ignoring surrounding spaces.
+fn parse_preference(input : String) -> Int? {
+  let text = input.trim()
+  if text.length() == 0 {
+    return None
+  }
+  let zero = Char::to_int('0')
+  let mut value = 0
+  for c in text.iter() {
+    let digit = Char::to_int(c) - zero
+    if digit < 0 || digit > 9 {
+      return None
+    }
+    value = value * 10 + digit
+  }
+  Some(value)
+}
+
+///|
+/// Numeric `PREF` of a field, or `None` when it is absent or not a number.
+fn preference_rank(field : Field) -> Int? {
+  match param_values(field.params, "PREF") {
+    Some(values) => {
+      if values.length() == 0 {
+        return None
+      }
+      parse_preference(values[0])
+    }
+    None => None
+  }
+}
+
+///|
+/// True when `left` should be ordered before `right`.
+fn preference_before(left : Field, right : Field) -> Bool {
+  match (preference_rank(left), preference_rank(right)) {
+    (Some(a), Some(b)) => a < b
+    (Some(_), None) => true
+    (None, Some(_)) => false
+    (None, None) => false
+  }
+}
+
+///|
+/// Orders multi-value fields by `PREF`: numeric preferences ascending, then every
+/// field whose `PREF` is missing or not a number. Fields that share a rank keep
+/// their original order, and the input array is left untouched.
+pub fn sort_by_preference(fields : Array[Field]) -> Array[Field] {
+  let used : Array[Bool] = []
+  for _ in fields {
+    used.push(false)
+  }
+  let ordered : Array[Field] = []
+  while ordered.length() < fields.length() {
+    let mut best = -1
+    for index in 0..<fields.length() {
+      if used[index] {
+        continue
+      }
+      if best < 0 || preference_before(fields[index], fields[best]) {
+        best = index
+      }
+    }
+    used[best] = true
+    ordered.push(fields[best])
+  }
+  ordered
+}
+
+///|
 fn drop_last(input : String) -> String {
   let chars = input.iter().to_array()
   if chars.length() == 0 {

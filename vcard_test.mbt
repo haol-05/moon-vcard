@@ -136,3 +136,22 @@ test "quoted-printable parameter is dropped once decoded" {
     None => fail("expected serialized contact")
   }
 }
+
+///|
+test "sort_by_preference orders numeric preferences" {
+  let input = "BEGIN:VCARD\nVERSION:4.0\nFN:Alice\nN:Smith;Alice;;;\nTEL;PREF=10:+10\nTEL:+none-a\nTEL;PREF=2:+2\nTEL;PREF=1:+1\nTEL;PREF=abc:+abc\nTEL:+none-b\nEND:VCARD"
+  let result = @moon-vcard.parse(input)
+  let ordered = @moon-vcard.sort_by_preference(result.contacts[0].phones)
+  let values = ordered.map(fn(field) { field.value })
+  assert_eq(values, ["+1", "+2", "+10", "+none-a", "+abc", "+none-b"])
+  assert_eq(result.contacts[0].phones[0].value, "+10")
+}
+
+///|
+test "sort_by_preference keeps equal preferences in file order" {
+  let input = "BEGIN:VCARD\nVERSION:4.0\nFN:Bob\nN:Doe;Bob;;;\nTEL;PREF=1:+a\nTEL;PREF=1:+b\nTEL;PREF:+bare\nTEL:+c\nEND:VCARD"
+  let result = @moon-vcard.parse(input)
+  let ordered = @moon-vcard.sort_by_preference(result.contacts[0].phones)
+  let values = ordered.map(fn(field) { field.value })
+  assert_eq(values, ["+a", "+b", "+bare", "+c"])
+}

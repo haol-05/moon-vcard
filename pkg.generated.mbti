@@ -10,6 +10,8 @@ pub fn format(Contact) -> String?
 
 pub fn parse(String) -> ParseResult
 
+pub fn sort_by_preference(Array[Field]) -> Array[Field]
+
 // Errors
 
 // Types and methods

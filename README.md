@@ -45,6 +45,13 @@ Each `TEL` and `EMAIL` line becomes a `Field`:
 | `Field` | `value`, `params` | one property value together with the parameters on its line |
 | `Param` | `name`, `values` | one parameter; `values` is empty for a bare parameter such as `;PREF`, and holds one entry per comma-separated value otherwise |
 
+Use `sort_by_preference` when a card carries several numbers or addresses and the caller wants the preferred one first. It orders numeric `PREF` values ascending, puts fields without a usable `PREF` last, keeps the original order within each group, and leaves the parsed array untouched:
+
+```moonbit
+let ordered = sort_by_preference(result.contacts[0].phones)
+println(ordered[0].value)
+```
+
 ## API change in 0.2.0
 
 `Contact.phones` and `Contact.emails` are `Array[Field]` instead of `Array[String]`: read `contact.phones[0].value` where 0.1.x code read `contact.phones[0]`. Parameters such as `TYPE` and `PREF` are preserved and written back instead of being dropped.
@@ -61,7 +68,7 @@ A GitHub repository search for `moonbit vcard`, `vcard moonbit` and `moonbit con
 
 ## Environment note
 
-Locally verified on 2026-09-25 with moon 0.1.20260807 on Windows: `moon check --target all`, `moon build` and `moon test` on `wasm`, `wasm-gc` and `js` (12 tests each), and the demo through `moon run`. With that release `moon check --deny-warn --target all` also reports zero warnings. The `native` target does not build on that host because the toolchain's own runtime source `<moon-home>/lib/runtime/env.c` calls `rand_s` without a declaration; a two-line test package fails identically, so this is a toolchain issue on that machine, not a defect in this library.
+Locally verified on 2026-09-25 with moon 0.1.20260807 on Windows: `moon check --target all`, `moon build` and `moon test` on `wasm`, `wasm-gc` and `js` (14 tests each), and the demo through `moon run`. With that release `moon check --deny-warn --target all` also reports zero warnings. The `native` target does not build on that host because the toolchain's own runtime source `<moon-home>/lib/runtime/env.c` calls `rand_s` without a declaration; a two-line test package fails identically, so this is a toolchain issue on that machine, not a defect in this library.
 
 GitHub Actions runs the same steps on `ubuntu-latest` with the latest released toolchain (moon 0.1.20260920 at the time of writing), including the `native` target, and passes. Two differences between toolchain releases are worth knowing:
 
