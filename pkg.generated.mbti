@@ -23,21 +23,33 @@ pub struct Contact {
   phones : Array[Field]
   emails : Array[Field]
 } derive(Eq, @debug.Debug)
+pub fn Contact::equal(Self, Self) -> Bool
+pub fn Contact::not_equal(Self, Self) -> Bool
+pub fn Contact::to_repr(Self) -> @debug.Repr
 
 pub struct Field {
   value : String
   params : Array[Param]
 } derive(Eq, @debug.Debug)
+pub fn Field::equal(Self, Self) -> Bool
+pub fn Field::not_equal(Self, Self) -> Bool
+pub fn Field::to_repr(Self) -> @debug.Repr
 
 pub struct Param {
   name : String
   values : Array[String]
 } derive(Eq, @debug.Debug)
+pub fn Param::equal(Self, Self) -> Bool
+pub fn Param::not_equal(Self, Self) -> Bool
+pub fn Param::to_repr(Self) -> @debug.Repr
 
 pub struct ParseResult {
   contacts : Array[Contact]
   diagnostics : Array[String]
 } derive(Eq, @debug.Debug)
+pub fn ParseResult::equal(Self, Self) -> Bool
+pub fn ParseResult::not_equal(Self, Self) -> Bool
+pub fn ParseResult::to_repr(Self) -> @debug.Repr
 
 // Type aliases
 
