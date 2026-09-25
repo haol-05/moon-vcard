@@ -1,3 +1,7 @@
+// `derive(Eq, Debug)` promotes the trait methods onto the type as regular methods.
+// The newest toolchain asks for that promotion to be declared, so every public type
+// carries the matching `extend` below it.
+
 ///|
 /// A single attribute parameter, for example `TYPE=cell` or a bare `PREF`.
 pub struct Param {
@@ -6,11 +10,23 @@ pub struct Param {
 } derive(Eq, Debug)
 
 ///|
+pub extend Param with Eq::{not_equal, equal}
+
+///|
+pub extend Param with @debug.Debug::{to_repr}
+
+///|
 /// A property value together with the parameters written on its own line.
 pub struct Field {
   value : String
   params : Array[Param]
 } derive(Eq, Debug)
+
+///|
+pub extend Field with Eq::{not_equal, equal}
+
+///|
+pub extend Field with @debug.Debug::{to_repr}
 
 ///|
 pub struct Contact {
@@ -23,10 +39,22 @@ pub struct Contact {
 } derive(Eq, Debug)
 
 ///|
+pub extend Contact with Eq::{not_equal, equal}
+
+///|
+pub extend Contact with @debug.Debug::{to_repr}
+
+///|
 pub struct ParseResult {
   contacts : Array[Contact]
   diagnostics : Array[String]
 } derive(Eq, Debug)
+
+///|
+pub extend ParseResult with Eq::{not_equal, equal}
+
+///|
+pub extend ParseResult with @debug.Debug::{to_repr}
 
 ///|
 fn unfold(input : String) -> Array[String] {

@@ -1,1 +1,5 @@
-// Pure MoonBit package with no external dependencies.
+// Pure MoonBit package. The only import ships with the toolchain itself, so the
+// package still has no third-party dependency.
+import {
+  "moonbitlang/core/debug",
+}
