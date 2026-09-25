@@ -155,3 +155,18 @@ test "sort_by_preference keeps equal preferences in file order" {
   let values = ordered.map(fn(field) { field.value })
   assert_eq(values, ["+a", "+b", "+bare", "+c"])
 }
+
+///|
+test "quoted-printable decodes a four byte utf-8 sequence" {
+  let input = "BEGIN:VCARD\nVERSION:3.0\nFN;ENCODING=QUOTED-PRINTABLE:=F0=9F=98=80 Smith\nN:Smith;Ann;;;\nEND:VCARD"
+  let result = @moon-vcard.parse(input)
+  assert_eq(result.diagnostics.length(), 0)
+  assert_eq(result.contacts[0].full_name, "😀 Smith")
+}
+
+///|
+test "quoted-printable reports truncated utf-8 bytes" {
+  let input = "BEGIN:VCARD\nVERSION:3.0\nFN;ENCODING=QUOTED-PRINTABLE:=E5=BC\nN:Smith;Ann;;;\nEND:VCARD"
+  let result = @moon-vcard.parse(input)
+  assert_true(result.diagnostics.contains("invalid-quoted-printable:3"))
+}
