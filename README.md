@@ -85,4 +85,6 @@ Locally verified on 2026-09-25 with moon 0.1.20260807 on Windows: `moon check --
 GitHub Actions runs the same steps on `ubuntu-latest` with the latest released toolchain (moon 0.1.20260920 at the time of writing), including the `native` target, and passes. Two differences between toolchain releases are worth knowing:
 
 - `moon fmt` output differs: 0.1.20260807 strips the trailing comma of an untagged struct literal while 0.1.20260920 keeps it, so this repository stores the form produced by the newer release that CI installs.
-- 0.1.20260920 adds `implicit_impl_as_method` deprecation warnings for the trait methods that `derive(Eq, Debug)` promotes on public types, so `moon check --deny-warn` reports them there. The documented commands therefore match what CI runs; the derivations themselves are kept because they are part of the public API.
+- `vcard.mbt` declares the trait methods that `derive(Eq, Debug)` promotes with explicit `pub extend` blocks, which is what 0.1.20260920 asks for, so neither release reports `implicit_impl_as_method` and `moon check --deny-warn --target all` is clean on both.
+
+See [CHANGELOG.md](CHANGELOG.md) for the release history.
