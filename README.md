@@ -13,7 +13,7 @@ moon test --deny-warn --target wasm
 moon run --target wasm examples/demo
 ```
 
-For another MoonBit module, add this package once it is available to that module's registry and import it as `haol-05/moon-vcard`:
+The package is published on mooncakes.io as [`haol-05/moon-vcard`](https://mooncakes.io/docs/haol-05/moon-vcard). From another module, add it and import it under the same name:
 
 ```sh
 moon add haol-05/moon-vcard
@@ -43,4 +43,6 @@ A GitHub repository search for `moonbit vcard`, `vcard moonbit` and `moonbit con
 
 ## Environment note
 
-`moon check`, `moon build`, `moon test` and the demo were run with `wasm`, `wasm-gc` and `js` on 2026-09-25 using moon 0.1.20260807. The `native` target does not build on this Windows setup: the toolchain's own runtime source `<moon-home>/lib/runtime/env.c` calls `rand_s` without a declaration and fails to compile. A two-line test package fails the same way, so this is a toolchain issue on this host, not a defect in this library.
+Locally verified on 2026-09-25 with moon 0.1.20260807 on Windows: `moon check --deny-warn --target all`, `moon build` and `moon test --deny-warn` on `wasm`, `wasm-gc` and `js` (5 tests each), and the demo through `moon run`. The `native` target does not build on that host because the toolchain's own runtime source `<moon-home>/lib/runtime/env.c` calls `rand_s` without a declaration; a two-line test package fails identically, so this is a toolchain issue on that machine, not a defect in this library.
+
+GitHub Actions runs the same steps on `ubuntu-latest` with the latest released toolchain (moon 0.1.20260920 at the time of writing), including the `native` target, and passes. Note that `moon fmt` output can differ between toolchain releases: 0.1.20260807 strips the trailing comma of an untagged struct literal while 0.1.20260920 keeps it, so this repository stores the form produced by the newer release that CI installs.
