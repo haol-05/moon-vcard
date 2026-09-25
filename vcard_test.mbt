@@ -5,7 +5,10 @@ test "parse two contacts and folded name" {
   assert_eq(result.contacts.length(), 2)
   assert_eq(result.contacts[0].full_name, "AliceSmith")
   assert_eq(result.contacts[0].family_name, "Smith")
-  assert_eq(result.contacts[0].phones, ["+123"])
+  assert_eq(result.contacts[0].phones.length(), 1)
+  assert_eq(result.contacts[0].phones[0].value, "+123")
+  assert_eq(result.contacts[0].phones[0].params[0].name, "TYPE")
+  assert_eq(result.contacts[0].phones[0].params[0].values, ["cell"])
   assert_eq(result.diagnostics.length(), 0)
 }
 
@@ -48,4 +51,40 @@ test "escaped semicolon stays inside family name" {
   let result = @moon-vcard.parse(input)
   assert_eq(result.contacts[0].family_name, "Smith;Jones")
   assert_eq(result.contacts[0].given_name, "Alice")
+}
+
+///|
+test "property parameters are parsed and written back" {
+  let input = "BEGIN:VCARD\nVERSION:3.0\nFN:Alice\nN:Smith;Alice;;;\nTEL;TYPE=cell,voice;PREF=1:+123\nEMAIL;TYPE=work:alice@example.org\nEND:VCARD"
+  let result = @moon-vcard.parse(input)
+  assert_eq(result.diagnostics.length(), 0)
+  let phone = result.contacts[0].phones[0]
+  assert_eq(phone.value, "+123")
+  assert_eq(phone.params.length(), 2)
+  assert_eq(phone.params[0].name, "TYPE")
+  assert_eq(phone.params[0].values, ["cell", "voice"])
+  assert_eq(phone.params[1].name, "PREF")
+  assert_eq(phone.params[1].values, ["1"])
+  assert_eq(result.contacts[0].emails[0].params[0].values, ["work"])
+  match @moon-vcard.format(result.contacts[0]) {
+    Some(text) => {
+      assert_true(text.contains("TEL;TYPE=cell,voice;PREF=1:+123\r\n"))
+      assert_true(text.contains("EMAIL;TYPE=work:alice@example.org\r\n"))
+      let again = @moon-vcard.parse(text)
+      assert_eq(again.contacts[0], result.contacts[0])
+    }
+    None => fail("expected serialized contact")
+  }
+}
+
+///|
+test "bare parameter and quoted parameter value" {
+  let input = "BEGIN:VCARD\nVERSION:4.0\nFN:Bob\nN:Doe;Bob;;;\nTEL;PREF;TYPE=\"work,voice\":+456\nEND:VCARD"
+  let result = @moon-vcard.parse(input)
+  assert_eq(result.diagnostics.length(), 0)
+  let params = result.contacts[0].phones[0].params
+  assert_eq(params[0].name, "PREF")
+  assert_eq(params[0].values.length(), 0)
+  assert_eq(params[1].name, "TYPE")
+  assert_eq(params[1].values, ["work,voice"])
 }
