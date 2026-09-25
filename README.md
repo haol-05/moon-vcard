@@ -13,6 +13,18 @@ moon test --target wasm
 moon run --target wasm examples/demo
 ```
 
+`examples/demo` parses one vCard 3.0 card whose name is quoted-printable encoded and one vCard 4.0 card, then prints every field with its parameters, with `PREF` order applied:
+
+```text
+Contacts: 2
+Diagnostics: 0
+Name: 张三 (v3.0)
+  TEL +8613900000001 [TYPE=home] [PREF=1]
+  TEL +8613900000002 [TYPE=cell] [PREF=2]
+  EMAIL zhang@example.org [TYPE=work]
+Name: Bob (v4.0)
+```
+
 The package is published on mooncakes.io as [`haol-05/moon-vcard`](https://mooncakes.io/docs/haol-05/moon-vcard). From another module, add it and import it under the same name:
 
 ```sh
