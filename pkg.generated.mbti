@@ -15,7 +15,7 @@ pub fn sort_by_preference(Array[Field]) -> Array[Field]
 // Errors
 
 // Types and methods
-pub struct Contact {
+pub(all) struct Contact {
   version : String
   full_name : String
   family_name : String
@@ -27,7 +27,7 @@ pub fn Contact::equal(Self, Self) -> Bool
 pub fn Contact::not_equal(Self, Self) -> Bool
 pub fn Contact::to_repr(Self) -> @debug.Repr
 
-pub struct Field {
+pub(all) struct Field {
   value : String
   params : Array[Param]
 } derive(Eq, @debug.Debug)
@@ -35,7 +35,7 @@ pub fn Field::equal(Self, Self) -> Bool
 pub fn Field::not_equal(Self, Self) -> Bool
 pub fn Field::to_repr(Self) -> @debug.Repr
 
-pub struct Param {
+pub(all) struct Param {
   name : String
   values : Array[String]
 } derive(Eq, @debug.Debug)
@@ -43,7 +43,7 @@ pub fn Param::equal(Self, Self) -> Bool
 pub fn Param::not_equal(Self, Self) -> Bool
 pub fn Param::to_repr(Self) -> @debug.Repr
 
-pub struct ParseResult {
+pub(all) struct ParseResult {
   contacts : Array[Contact]
   diagnostics : Array[String]
 } derive(Eq, @debug.Debug)

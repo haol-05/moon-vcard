@@ -1,0 +1,6 @@
+// JSON codecs for the public contact model. The core JSON package ships with
+// the toolchain, so the module keeps its no-third-party-dependency rule.
+import {
+  "haol-05/moon-vcard" @vcard,
+  "moonbitlang/core/json" @json_core,
+}

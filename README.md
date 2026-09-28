@@ -64,6 +64,28 @@ let ordered = sort_by_preference(result.contacts[0].phones)
 println(ordered[0].value)
 ```
 
+## Packages
+
+The root package keeps exactly three public functions (`parse`, `format`,
+`sort_by_preference`) and the `Contact`, `Field`, `Param` model. Everything
+around it lives in sibling packages, so a caller that only needs the core stays
+small:
+
+| Package | What it adds |
+| --- | --- |
+| `haol-05/moon-vcard` | the parser, the writer and preference ordering |
+| `.../params` | read, add, drop, merge, sort and render parameters of a field |
+| `.../normalize` | comparison keys for phones, emails and names, plus masking and grouping helpers |
+| `.../query` | a small filter expression language (`has:email,type=cell,-name~test`) |
+| `.../tools` | statistics, duplicate detection, merging, dedupe, search, sorting and diffing |
+| `.../csv` | RFC 4180 reading and writing, with contact rows |
+| `.../report` | markdown, plain-text and summary renderers |
+| `.../json` | JSON encoders and decoders for the model, built on the toolchain's JSON package |
+
+Because the model types are `pub(all)`, a sibling package can build derived
+contacts (a merged duplicate, for example) instead of only reading them. The
+root package remains the only parser.
+
 ## API change in 0.2.0
 
 `Contact.phones` and `Contact.emails` are `Array[Field]` instead of `Array[String]`: read `contact.phones[0].value` where 0.1.x code read `contact.phones[0]`. Parameters such as `TYPE` and `PREF` are preserved and written back instead of being dropped.
@@ -80,11 +102,11 @@ A GitHub repository search for `moonbit vcard`, `vcard moonbit` and `moonbit con
 
 ## Environment note
 
-Locally verified on 2026-09-25 with moon 0.1.20260807 on Windows: `moon check --target all`, `moon build` and `moon test` on `wasm`, `wasm-gc` and `js` (16 tests each), and the demo through `moon run`. With that release `moon check --deny-warn --target all` also reports zero warnings. The `native` target does not build on that host because the toolchain's own runtime source `<moon-home>/lib/runtime/env.c` calls `rand_s` without a declaration; a two-line test package fails identically, so this is a toolchain issue on that machine, not a defect in this library.
+Verified on 2026-09-26 with moon 0.1.20260920 and `moonc v0.10.14` on Windows, in an installation kept outside the user profile so the machine's older toolchain stays untouched: `moon check --deny-warn --target all`, `moon build` and `moon test --deny-warn` on `wasm`, `wasm-gc` and `js` (237 tests each, of which the root package keeps 16), the demo through `moon run`, and `moon fmt` / `moon info` leaving the working tree unchanged. The `native` target does not build on that host because the toolchain's own runtime source `<moon-home>/lib/runtime/env.c` calls `rand_s` without a declaration; a three-line test package fails identically, so this is a toolchain issue on that machine, not a defect in this library.
 
-GitHub Actions runs the same steps on `ubuntu-latest` with the latest released toolchain (moon 0.1.20260920 at the time of writing), including the `native` target, and passes. Two differences between toolchain releases are worth knowing:
+GitHub Actions runs the same steps on `ubuntu-latest` with the latest released toolchain, including the `native` target, and passes. One difference between toolchain releases is worth knowing:
 
-- `moon fmt` output differs: 0.1.20260807 strips the trailing comma of an untagged struct literal while 0.1.20260920 keeps it, so this repository stores the form produced by the newer release that CI installs.
-- `vcard.mbt` declares the trait methods that `derive(Eq, Debug)` promotes with explicit `pub extend` blocks, which is what 0.1.20260920 asks for, so neither release reports `implicit_impl_as_method` and `moon check --deny-warn --target all` is clean on both.
+- `moon fmt` output differs: the older 0.1.20260807 release strips the trailing comma of an untagged struct literal while 0.1.20260920 keeps it, so this repository stores the form produced by the newer release that CI installs, and formatting with the older release rewrites a few lines.
+- `vcard.mbt` declares the trait methods that `derive(Eq, Debug)` promotes with explicit `pub extend` blocks, which is what 0.1.20260920 asks for, so `moon check --deny-warn --target all` is clean without `implicit_impl_as_method` warnings.
 
 See [CHANGELOG.md](CHANGELOG.md) for the release history.

@@ -1,0 +1,104 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "haol-05/moon-vcard/tools"
+
+import {
+  "haol-05/moon-vcard",
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn complete_only(Array[@moon-vcard.Contact]) -> Array[@moon-vcard.Contact]
+
+pub fn count_by_version(Array[@moon-vcard.Contact]) -> Array[VersionCount]
+
+pub fn dedupe(Array[@moon-vcard.Contact]) -> Array[@moon-vcard.Contact]
+
+pub fn diff(Array[@moon-vcard.Contact], Array[@moon-vcard.Contact]) -> Diff
+
+pub fn duplicate_groups(Array[@moon-vcard.Contact]) -> Array[DuplicateGroup]
+
+pub fn filter(Array[@moon-vcard.Contact], String) -> Array[@moon-vcard.Contact]
+
+pub fn identity_keys(@moon-vcard.Contact) -> Array[String]
+
+pub fn merge(@moon-vcard.Contact, @moon-vcard.Contact) -> @moon-vcard.Contact
+
+pub fn merge_group(Array[@moon-vcard.Contact]) -> @moon-vcard.Contact?
+
+pub fn merge_text(@moon-vcard.Contact, @moon-vcard.Contact) -> String
+
+pub fn render_contact_text(@moon-vcard.Contact) -> String
+
+pub fn render_contacts_text(Array[@moon-vcard.Contact]) -> String
+
+pub fn render_diff(Diff) -> String
+
+pub fn render_group(Array[@moon-vcard.Contact], DuplicateGroup) -> String
+
+pub fn render_groups(Array[@moon-vcard.Contact], Array[DuplicateGroup]) -> String
+
+pub fn render_stats(Stats) -> String
+
+pub fn same_person(@moon-vcard.Contact, @moon-vcard.Contact) -> Bool
+
+pub fn search(Array[@moon-vcard.Contact], String) -> Array[@moon-vcard.Contact]
+
+pub fn sort_by_name(Array[@moon-vcard.Contact]) -> Array[@moon-vcard.Contact]
+
+pub fn stats(Array[@moon-vcard.Contact]) -> Stats
+
+pub fn text_less(String, String) -> Bool
+
+pub fn unique_emails(Array[@moon-vcard.Contact]) -> Array[String]
+
+pub fn unique_phones(Array[@moon-vcard.Contact]) -> Array[String]
+
+pub fn with_email(Array[@moon-vcard.Contact]) -> Array[@moon-vcard.Contact]
+
+pub fn with_phone(Array[@moon-vcard.Contact]) -> Array[@moon-vcard.Contact]
+
+// Errors
+
+// Types and methods
+pub struct Diff {
+  added : Array[@moon-vcard.Contact]
+  removed : Array[@moon-vcard.Contact]
+  changed : Array[@moon-vcard.Contact]
+  unchanged : Array[@moon-vcard.Contact]
+} derive(Eq, @debug.Debug)
+pub fn Diff::equal(Self, Self) -> Bool
+pub fn Diff::not_equal(Self, Self) -> Bool
+pub fn Diff::to_repr(Self) -> @debug.Repr
+
+pub struct DuplicateGroup {
+  key : String
+  indices : Array[Int]
+} derive(Eq, @debug.Debug)
+pub fn DuplicateGroup::equal(Self, Self) -> Bool
+pub fn DuplicateGroup::not_equal(Self, Self) -> Bool
+pub fn DuplicateGroup::to_repr(Self) -> @debug.Repr
+
+pub struct Stats {
+  total : Int
+  with_phone : Int
+  with_email : Int
+  phones : Int
+  emails : Int
+  versions : Array[VersionCount]
+  duplicate_groups : Int
+} derive(Eq, @debug.Debug)
+pub fn Stats::equal(Self, Self) -> Bool
+pub fn Stats::not_equal(Self, Self) -> Bool
+pub fn Stats::to_repr(Self) -> @debug.Repr
+
+pub struct VersionCount {
+  version : String
+  count : Int
+} derive(Eq, @debug.Debug)
+pub fn VersionCount::equal(Self, Self) -> Bool
+pub fn VersionCount::not_equal(Self, Self) -> Bool
+pub fn VersionCount::to_repr(Self) -> @debug.Repr
+
+// Type aliases
+
+// Traits

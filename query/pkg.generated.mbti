@@ -1,0 +1,47 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "haol-05/moon-vcard/query"
+
+import {
+  "haol-05/moon-vcard",
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn describe(Query) -> String
+
+pub fn filter(Array[@moon-vcard.Contact], String) -> Array[@moon-vcard.Contact]
+
+pub fn is_empty(Query) -> Bool
+
+pub fn matches(Query, @moon-vcard.Contact) -> Bool
+
+pub fn parse(String) -> Query
+
+pub fn term_matches(Term, @moon-vcard.Contact) -> Bool
+
+pub fn term_text(Term) -> String
+
+// Errors
+
+// Types and methods
+pub struct Query {
+  terms : Array[Term]
+  source : String
+} derive(Eq, @debug.Debug)
+pub fn Query::equal(Self, Self) -> Bool
+pub fn Query::not_equal(Self, Self) -> Bool
+pub fn Query::to_repr(Self) -> @debug.Repr
+
+pub struct Term {
+  negated : Bool
+  field : String
+  op : String
+  value : String
+} derive(Eq, @debug.Debug)
+pub fn Term::equal(Self, Self) -> Bool
+pub fn Term::not_equal(Self, Self) -> Bool
+pub fn Term::to_repr(Self) -> @debug.Repr
+
+// Type aliases
+
+// Traits

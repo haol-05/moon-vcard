@@ -1,0 +1,5 @@
+// Parameter utilities. The only import is the package under this one, so the
+// package keeps the module's no-third-party-dependency rule.
+import {
+  "haol-05/moon-vcard" @vcard,
+}

@@ -1,0 +1,31 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "haol-05/moon-vcard/csv"
+
+import {
+  "haol-05/moon-vcard",
+}
+
+// Values
+pub fn contact_header() -> Array[String]
+
+pub fn contact_row(@moon-vcard.Contact) -> Array[String]
+
+pub fn contacts_to_csv(Array[@moon-vcard.Contact]) -> String
+
+pub fn encode(Array[Array[String]]) -> String
+
+pub fn encode_field(String) -> String
+
+pub fn encode_row(Array[String]) -> String
+
+pub fn parse(String) -> Array[Array[String]]
+
+pub fn table(String) -> (Array[String], Array[Array[String]])
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits

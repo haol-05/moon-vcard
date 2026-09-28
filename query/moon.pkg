@@ -1,0 +1,9 @@
+import {
+  "haol-05/moon-vcard" @vcard,
+  "haol-05/moon-vcard/normalize",
+  "moonbitlang/core/debug",
+}
+
+import {
+  "haol-05/moon-vcard" @vcard,
+} for "test"

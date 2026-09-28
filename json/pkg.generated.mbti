@@ -1,0 +1,39 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "haol-05/moon-vcard/json"
+
+import {
+  "haol-05/moon-vcard",
+}
+
+// Values
+pub fn contact_to_json(@moon-vcard.Contact) -> Json
+
+pub fn contacts_to_json(Array[@moon-vcard.Contact]) -> Json
+
+pub fn decode_contacts(String) -> Array[@moon-vcard.Contact]?
+
+pub fn encode_contacts(Array[@moon-vcard.Contact], indent? : Int) -> String
+
+pub fn field_to_json(@moon-vcard.Field) -> Json
+
+pub fn json_to_contact(Json) -> @moon-vcard.Contact?
+
+pub fn json_to_contacts(Json) -> Array[@moon-vcard.Contact]?
+
+pub fn json_to_field(Json) -> @moon-vcard.Field?
+
+pub fn json_to_param(Json) -> @moon-vcard.Param?
+
+pub fn json_to_parse_result(Json) -> @moon-vcard.ParseResult?
+
+pub fn param_to_json(@moon-vcard.Param) -> Json
+
+pub fn parse_result_to_json(@moon-vcard.ParseResult) -> Json
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits

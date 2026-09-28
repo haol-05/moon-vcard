@@ -1,0 +1,7 @@
+import {
+  "haol-05/moon-vcard" @vcard,
+}
+
+import {
+  "haol-05/moon-vcard" @vcard,
+} for "test"
