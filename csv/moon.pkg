@@ -1,0 +1,5 @@
+// RFC 4180 CSV reader and writer over the vCard data model. The only import is
+// the module's own root package, so there is no third-party dependency.
+import {
+  "haol-05/moon-vcard" @vcard,
+}

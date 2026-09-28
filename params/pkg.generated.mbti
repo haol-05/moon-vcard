@@ -1,0 +1,37 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "haol-05/moon-vcard/params"
+
+import {
+  "haol-05/moon-vcard",
+}
+
+// Values
+pub fn canonical(Array[@moon-vcard.Param]) -> Array[@moon-vcard.Param]
+
+pub fn first_value(Array[@moon-vcard.Param], String) -> String?
+
+pub fn has(Array[@moon-vcard.Param], String) -> Bool
+
+pub fn lookup(Array[@moon-vcard.Param], String) -> @moon-vcard.Param?
+
+pub fn merge(Array[@moon-vcard.Param], Array[@moon-vcard.Param]) -> Array[@moon-vcard.Param]
+
+pub fn preference(Array[@moon-vcard.Param]) -> Int?
+
+pub fn render(Array[@moon-vcard.Param]) -> String
+
+pub fn sorted(Array[@moon-vcard.Param]) -> Array[@moon-vcard.Param]
+
+pub fn values_of(Array[@moon-vcard.Param], String) -> Array[String]
+
+pub fn with_param(Array[@moon-vcard.Param], String, Array[String]) -> Array[@moon-vcard.Param]
+
+pub fn without(Array[@moon-vcard.Param], String) -> Array[@moon-vcard.Param]
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits

@@ -2,6 +2,18 @@
 
 Notable changes to this project, following [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Each entry names the GitHub issue that carried the work, and every change is visible in the repository history and in the merged pull requests.
 
+## 0.3.0 - 2026-09-26
+
+### Added
+
+- Seven sibling packages around the unchanged core: `params` (parameter lookup, editing, merging, sorting, rendering), `normalize` (comparison keys, plausibility checks, masking, grouping helpers), `query` (a filter expression language), `tools` (statistics, duplicate detection, merging, dedupe, search, sorting, diffing), `csv` (RFC 4180 reading and writing with contact rows), `report` (markdown, plain-text and summary rendering) and `json` (model encoders and decoders built on the toolchain's JSON package).
+- 221 new unit tests, bringing the module to 237; the root package keeps its original 16.
+
+### Changed
+
+- The four model types (`Param`, `Field`, `Contact`, `ParseResult`) are declared `pub(all)`, so sibling packages can build derived contacts. The public function surface of the root package is unchanged: `parse`, `format`, `sort_by_preference`.
+- GitHub Actions now uses `actions/checkout@v5`.
+
 ## 0.2.0 - 2026-09-25
 
 ### Added

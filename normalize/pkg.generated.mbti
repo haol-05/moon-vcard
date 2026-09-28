@@ -1,0 +1,49 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "haol-05/moon-vcard/normalize"
+
+import {
+  "haol-05/moon-vcard",
+}
+
+// Values
+pub fn ascii_lower(String) -> String
+
+pub fn ascii_upper(String) -> String
+
+pub fn contact_key(@moon-vcard.Contact) -> String
+
+pub fn digits_only(String) -> String
+
+pub fn email_key(String) -> String
+
+pub fn group_phone(String) -> String
+
+pub fn has_enough_digits(String, Int) -> Bool
+
+pub fn is_plausible_email(String) -> Bool
+
+pub fn is_plausible_phone(String) -> Bool
+
+pub fn key_count(Array[@moon-vcard.Contact], @moon-vcard.Contact) -> Int
+
+pub fn mask_email(String) -> String
+
+pub fn mask_phone(String) -> String
+
+pub fn name_key(String) -> String
+
+pub fn phone_key(String) -> String
+
+pub fn primary_email_key(@moon-vcard.Contact) -> String
+
+pub fn primary_phone_key(@moon-vcard.Contact) -> String
+
+pub fn same_person(@moon-vcard.Contact, @moon-vcard.Contact) -> Bool
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits

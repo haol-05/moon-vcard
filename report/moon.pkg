@@ -1,0 +1,5 @@
+// Human-readable markdown rendering of the vCard data model. The only imports
+// are the module's own packages, so the package has no third-party dependency.
+import {
+  "haol-05/moon-vcard" @vcard,
+}

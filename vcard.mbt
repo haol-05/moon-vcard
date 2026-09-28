@@ -1,10 +1,14 @@
 // `derive(Eq, Debug)` promotes the trait methods onto the type as regular methods.
 // The newest toolchain asks for that promotion to be declared, so every public type
 // carries the matching `extend` below it.
+//
+// The model types are declared `pub(all)` so that sibling packages in this module
+// can build derived contacts from parsed values; the defining package keeps the
+// only parser, so every constructed value is still validated by this file's rules.
 
 ///|
 /// A single attribute parameter, for example `TYPE=cell` or a bare `PREF`.
-pub struct Param {
+pub(all) struct Param {
   name : String
   values : Array[String]
 } derive(Eq, Debug)
@@ -17,7 +21,7 @@ pub extend Param with @debug.Debug::{to_repr}
 
 ///|
 /// A property value together with the parameters written on its own line.
-pub struct Field {
+pub(all) struct Field {
   value : String
   params : Array[Param]
 } derive(Eq, Debug)
@@ -29,7 +33,7 @@ pub extend Field with Eq::{not_equal, equal}
 pub extend Field with @debug.Debug::{to_repr}
 
 ///|
-pub struct Contact {
+pub(all) struct Contact {
   version : String
   full_name : String
   family_name : String
@@ -45,7 +49,7 @@ pub extend Contact with Eq::{not_equal, equal}
 pub extend Contact with @debug.Debug::{to_repr}
 
 ///|
-pub struct ParseResult {
+pub(all) struct ParseResult {
   contacts : Array[Contact]
   diagnostics : Array[String]
 } derive(Eq, Debug)
